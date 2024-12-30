@@ -39,18 +39,25 @@ services:
     ports:
       - "5672:5672"
       - "15672:15672"
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 30s
+      timeout: 30s
+      retries: 3
 
   consumer1:
     build:
       context: ./api1
     depends_on:
-      - rabbitmq
+      rabbitmq:
+       condition: service_healthy
 
   consumer2:
     build:
       context: ./api2
     depends_on:
-      - rabbitmq
+      rabbitmq:
+        condition: service_healthy
 
 configs:
   nginx:

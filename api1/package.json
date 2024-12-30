@@ -4,9 +4,10 @@
   "description": "RabbitMQ Consumer API",
   "main": "consumer.js",
   "scripts": {
-    "start": "node consumer.js",
+    "start": "node consumer.js"
   },
   "dependencies": {
     "amqplib": "^0.10.5"
   }
 }
+

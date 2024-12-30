@@ -3,7 +3,7 @@ const queue = 'tasks';
 
 (async () => {
     try {
-        const connection = await amqplib.connect('amqp://localhost');
+        const connection = await amqplib.connect('amqp://rabbitmq');
         const channel = await connection.createChannel();
         await channel.assertQueue(queue);
 

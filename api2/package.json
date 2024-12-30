@@ -1,11 +1,10 @@
-
-  {
-  "name": "consumer2",
+{
+  "name": "consumer1",
   "version": "1.0.0",
   "description": "RabbitMQ Consumer API",
   "main": "consumer.js",
   "scripts": {
-    "start": "node consumer.js",
+    "start": "node consumer.js"
   },
   "dependencies": {
     "amqplib": "^0.10.5"

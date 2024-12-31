@@ -1,9 +1,9 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-
 import psycopg2
 import pika
 import os
+import json
 
 app = FastAPI()
 
@@ -13,8 +13,13 @@ DB_USER = os.getenv('DB_USER')
 DB_PASSWORD = os.getenv('DB_PASSWORD')
 DB_NAME = os.getenv('DB_NAME')
 
-RABBITMQ_HOST= os.getenv('RABBITMQ_HOST')
+RABBITMQ_HOST = os.getenv('RABBITMQ_HOST')
 RABBITMQ_QUEUE = 'tasks'
+
+class Task(BaseModel):
+    user_id: int
+    task_name: str
+    description: str
 
 def get_db_connection():
     conn = psycopg2.connect(
@@ -38,14 +43,30 @@ def test_db():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.post("/publish")
-def publich_message(message: str):
+@app.post("/tasks")
+def create_task(task: Task):
     try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute(
+            "INSERT INTO tasks (user_id, task_name, description) VALUES (%s, %s, %s) RETURNING id;",
+            (task.user_id, task.task_name, task.description)
+        )
+        task_id = cur.fetchone()[0]
+        conn.commit()
+        cur.close()
+        conn.close()
+
         connection = pika.BlockingConnection(pika.ConnectionParameters(RABBITMQ_HOST))
         channel = connection.channel()
         channel.queue_declare(queue=RABBITMQ_QUEUE)
-        channel.basic_publish(exchange='', routing_key=RABBITMQ_QUEUE, body=message)
+        channel.basic_publish(
+            exchange='',
+            routing_key=RABBITMQ_QUEUE,
+            body=json.dumps(task.dict())
+        )
         connection.close()
-        return {"message": "Message published."}
+
+        return {"message": "Task created successfully.", "task_id": task_id}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

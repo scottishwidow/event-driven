@@ -10,7 +10,11 @@ const queue = 'tasks';
         console.log('Consumer 2 waiting for messages...');
         channel.consume(queue, (msg) => {
             if (msg !== null) {
-                console.log('Consumer 2 received:', msg.content.toString());
+                const task = JSON.parse(msg.content.toString());
+                console.log('Received task:', task);
+
+                console.log(`Notification: Task [${task.task_name}] has been processed.`);
+
                 channel.ack(msg);
             }
         });

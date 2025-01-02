@@ -5,6 +5,7 @@
 ```bash
 psql -h <db_host> -p <db_port> -U <db_user> -d <db_name>
 
+```
 
 ```sql
 

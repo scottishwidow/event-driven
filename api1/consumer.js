@@ -26,11 +26,12 @@ const maxRetries = 3;
                     channel.ack(msg);
                 } catch (error) {
                     console.error(`Failed to process task: ${error.message}`);
-                    let retries = msg.properties.headers['x-retry-count'] || 0;
+                    let retries = (msg.properties.headers && msg.properties.headers['x-retry-count']) || 0;
 
                     if (retries < maxRetries) {
-                        channel.nack(msg, false, false); // Requeue the message
+                        msg.properties.headers = msg.properties.headers || {};
                         msg.properties.headers['x-retry-count'] = retries + 1;
+                        channel.nack(msg, false, true); // Requeue the message
                     } else {
                         console.error(`Task ${msg.content.toString()} failed after ${maxRetries} retries.`);
                         channel.ack(msg); // Send to DLQ or log for further investigation
@@ -42,3 +43,4 @@ const maxRetries = 3;
         console.error('Error:', error);
     }
 })();
+

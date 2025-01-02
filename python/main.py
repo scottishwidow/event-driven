@@ -24,6 +24,9 @@ class Task(BaseModel):
     task_name: str
     description: str
 
+class TaskStatusUpdate(BaseModel):
+    status: str
+
 def get_db_connection():
     return psycopg2.connect(
         host=DB_HOST,
@@ -91,8 +94,9 @@ def create_task(task: Task):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.patch("/tasks/{task_id}/status")
-def update_task_status(task_id: int, status: str):
+def update_task_status(task_id: int, task_status: TaskStatusUpdate):
     try:
+        status = task_status.status
         conn = get_db_connection()
         cur = conn.cursor()
         cur.execute("UPDATE tasks SET status = %s, updated_at = NOW() WHERE id = %s;", (status, task_id))
@@ -103,3 +107,4 @@ def update_task_status(task_id: int, status: str):
     except Exception as e:
         logging.error(f"Error updating task status: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
